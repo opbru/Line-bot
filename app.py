@@ -22,7 +22,7 @@ handler = WebhookHandler(app.config['LINE_CHANNEL_SECRET'])
 # 初始化訊息處理器
 message_handler = MessageHandler(line_bot_api)
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def index():
     """首頁"""
     return """
