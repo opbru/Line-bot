@@ -11,13 +11,16 @@ ENV/
 
 # 環境變數
 .env
+.env.local
 
 # 資料庫
 *.db
 *.sqlite3
+instance/
 
 # 圖表檔案
 static/charts/*.png
+static/charts/*.jpg
 
 # IDE
 .vscode/
@@ -28,3 +31,16 @@ static/charts/*.png
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution
+dist/
+build/
+*.egg-info/
