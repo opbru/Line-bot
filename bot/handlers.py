@@ -7,6 +7,7 @@ from utils.text_parser import TextParser
 from utils.category_classifier import CategoryClassifier
 from utils.chart_generator import ChartGenerator
 from bot.flex_messages import FlexMessageBuilder
+from linebot.models import ImageSendMessage
 import os
 
 class MessageHandler:
@@ -138,19 +139,34 @@ class MessageHandler:
                 )
                 return
 
-            # 建立 Flex Message
-            flex_message = self.flex_builder.create_weekly_summary(summary, has_chart=True)
+            # 建立回覆訊息（原本的程式碼）
+            start_date = summary['start_date'].strftime('%m/%d')
+            end_date = summary['end_date'].strftime('%m/%d')
+
+            reply_text = f"📊 本週支出統計\n"
+            reply_text += f"📅 {start_date} - {end_date}\n"
+            reply_text += "=" * 25 + "\n\n"
+
+            # 各類別統計
+            for expense in summary['expenses_by_category']:
+                emoji = self.classifier.get_category_emoji(expense.category)
+                reply_text += f"{emoji} {expense.category}\n"
+                reply_text += f"   {expense.count} 筆 ${expense.total_amount:,.0f}\n\n"
+
+            reply_text += "=" * 25 + "\n"
+            reply_text += f"💰 總計：${summary['total_amount']:,.0f}\n\n"
+            reply_text += "💡 輸入「查看圖表」顯示統計圖"
 
             self.line_bot_api.reply_message(
                 event.reply_token,
-                FlexSendMessage(
-                    alt_text="本週支出統計",
-                    contents=flex_message
-                )
+                TextSendMessage(text=reply_text)
             )
 
         except Exception as e:
-            self._send_error_message(event, f"統計失敗：{str(e)}")
+            self.line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"❌ 統計失敗：{str(e)}")
+            )
 
     def _handle_delete_command(self, event, user_id, delete_index):
         """處理刪除指令"""
@@ -184,25 +200,34 @@ class MessageHandler:
                 )
                 return
 
-            # 生成圖表
-            chart_base64 = self.chart_gen.generate_weekly_bar_chart(
+            # 生成圖表 URL
+            chart_url = self.chart_gen.generate_weekly_bar_chart(
                 summary['expenses_by_category'],
                 summary['start_date'],
                 summary['end_date']
             )
 
-            if chart_base64:
-                # 這裡需要將 base64 圖片上傳到某個圖床或使用 ngrok 的靜態檔案服務
-                # 暫時使用文字回覆
+            if chart_url:
+                # 發送圖片訊息
+                from linebot.models import ImageSendMessage
                 self.line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(text="圖表功能開發中，請稍後再試。")
+                    ImageSendMessage(
+                        original_content_url=chart_url,
+                        preview_image_url=chart_url
+                    )
                 )
             else:
-                self._send_error_message(event, "生成圖表失敗。")
+                self.line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text="❌ 生成圖表失敗，請稍後再試")
+                )
 
         except Exception as e:
-            self._send_error_message(event, f"顯示圖表失敗：{str(e)}")
+            self.line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"❌ 顯示圖表失敗：{str(e)}")
+            )
 
     def _send_help_message(self, event):
         """發送說明訊息"""
