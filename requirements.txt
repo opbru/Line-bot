@@ -1,0 +1,10 @@
+Flask==2.3.3
+line-bot-sdk==3.5.0
+python-dotenv==1.0.0
+SQLAlchemy==2.0.21
+numpy<2
+matplotlib==3.7.2
+seaborn==0.12.2
+pandas==2.1.1
+python-dateutil==2.8.2
+gunicorn==21.2.0
