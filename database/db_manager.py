@@ -10,10 +10,41 @@ class DatabaseManager:
         if database_url is None:
             database_url = os.getenv('DATABASE_URL', 'sqlite:///accounting.db')
 
-        self.engine = create_engine(database_url)
-        Base.metadata.create_all(self.engine)
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        # 修正 Railway PostgreSQL URL 格式
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+        print(f"Connecting to database: {database_url.split('@')[0]}...")  # 不顯示密碼
+
+        try:
+            # 建立引擎
+            if 'postgresql' in database_url:
+                # PostgreSQL 設定
+                self.engine = create_engine(
+                    database_url,
+                    pool_size=5,
+                    pool_pre_ping=True,
+                    echo=False
+                )
+            else:
+                # SQLite 設定
+                self.engine = create_engine(
+                    database_url,
+                    connect_args={"check_same_thread": False},
+                    echo=False
+                )
+
+            Base.metadata.create_all(self.engine)
+
+            # 建立 Session
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+
+            print("Database connected successfully!")
+
+        except Exception as e:
+            print(f"Database connection error: {e}")
+            raise e
 
     def get_or_create_user(self, line_user_id, display_name=None):
         """取得或建立使用者"""
