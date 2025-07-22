@@ -139,34 +139,19 @@ class MessageHandler:
                 )
                 return
 
-            # 建立回覆訊息（原本的程式碼）
-            start_date = summary['start_date'].strftime('%m/%d')
-            end_date = summary['end_date'].strftime('%m/%d')
-
-            reply_text = f"📊 本週支出統計\n"
-            reply_text += f"📅 {start_date} - {end_date}\n"
-            reply_text += "=" * 25 + "\n\n"
-
-            # 各類別統計
-            for expense in summary['expenses_by_category']:
-                emoji = self.classifier.get_category_emoji(expense.category)
-                reply_text += f"{emoji} {expense.category}\n"
-                reply_text += f"   {expense.count} 筆 ${expense.total_amount:,.0f}\n\n"
-
-            reply_text += "=" * 25 + "\n"
-            reply_text += f"💰 總計：${summary['total_amount']:,.0f}\n\n"
-            reply_text += "💡 輸入「查看圖表」顯示統計圖"
+            # 建立 Flex Message
+            flex_message = self.flex_builder.create_weekly_summary(summary, has_chart=True)
 
             self.line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage(text=reply_text)
+                FlexSendMessage(
+                    alt_text="本週支出統計",
+                    contents=flex_message
+                )
             )
 
         except Exception as e:
-            self.line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=f"❌ 統計失敗：{str(e)}")
-            )
+            self._send_error_message(event, f"統計失敗：{str(e)}")
 
     def _handle_delete_command(self, event, user_id, delete_index):
         """處理刪除指令"""
