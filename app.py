@@ -66,6 +66,62 @@ def handle_error(error):
     app.logger.error(f"Unhandled exception: {error}")
     return "Internal Server Error", 500
 
+@app.route("/debug/env")
+def debug_env():
+    """檢查環境變數（安全版本）"""
+    return {
+        "LINE_CHANNEL_ACCESS_TOKEN": "Set" if os.environ.get('LINE_CHANNEL_ACCESS_TOKEN') else "Not Set",
+        "LINE_CHANNEL_SECRET": "Set" if os.environ.get('LINE_CHANNEL_SECRET') else "Not Set",
+        "TOKEN_LENGTH": len(os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')),
+        "SECRET_LENGTH": len(os.environ.get('LINE_CHANNEL_SECRET', '')),
+        "TOKEN_FIRST_10": os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', '')[:10] + "..." if os.environ.get('LINE_CHANNEL_ACCESS_TOKEN') else "None",
+        "RAILWAY_ENVIRONMENT": os.environ.get('RAILWAY_ENVIRONMENT', 'Not Set'),
+        "DATABASE_URL": "Set" if os.environ.get('DATABASE_URL') else "Not Set"
+    }
+
+@app.route("/debug/line-test")
+def debug_line_test():
+    """測試 LINE API 連線"""
+    try:
+        # 重新初始化 LINE Bot API
+        token = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
+        if not token:
+            return {"error": "No token found in environment"}, 500
+
+        from linebot import LineBotApi
+        test_api = LineBotApi(token)
+
+        # 嘗試取得 bot 資訊
+        bot_info = test_api.get_bot_info()
+
+        return {
+            "status": "success",
+            "bot_name": bot_info.display_name,
+            "bot_id": bot_info.user_id,
+            "token_works": True
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "token_exists": bool(os.environ.get('LINE_CHANNEL_ACCESS_TOKEN'))
+        }, 500
+
+@app.route("/debug/webhook-test", methods=['POST'])
+def debug_webhook_test():
+    """測試 webhook 接收"""
+    print("=== Debug Webhook Test ===")
+    print(f"Headers: {dict(request.headers)}")
+    print(f"Body: {request.get_data(as_text=True)[:200]}...")
+
+    signature = request.headers.get('X-Line-Signature', 'No signature')
+    return {
+        "received": True,
+        "signature_exists": signature != 'No signature',
+        "content_type": request.content_type
+    }
+
 if __name__ == "__main__":
     # 開發環境設定
     port = int(os.environ.get('PORT', 5000))
