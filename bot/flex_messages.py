@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Dict, Any
 
+
 class FlexMessageBuilder:
     """Flex Message 建構器"""
 

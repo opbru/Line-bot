@@ -3,6 +3,11 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.sql import func
+import pytz
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.timezone_helper import get_taipei_time
 
 Base = declarative_base()
 
@@ -13,7 +18,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     line_user_id = Column(String(50), unique=True, nullable=False)
     display_name = Column(String(100))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_taipei_time)
 
     # 關聯
     expenses = relationship("Expense", back_populates="user", cascade="all, delete-orphan")
@@ -27,7 +32,7 @@ class Expense(Base):
     category = Column(String(50), nullable=False)
     amount = Column(Float, nullable=False)
     description = Column(String(200))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=get_taipei_time)
 
     # 關聯
     user = relationship("User", back_populates="expenses")

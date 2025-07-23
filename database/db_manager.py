@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, desc, and_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 from .models import Base, User, Expense
+from utils.timezone_helper import get_taipei_time, to_taipei_time
 
 class DatabaseManager:
     def __init__(self, database_url=None):
@@ -107,7 +108,7 @@ class DatabaseManager:
         user = self.get_or_create_user(line_user_id)
 
         # 計算本週的開始日期（週一）
-        today = datetime.now()
+        today = get_taipei_time()
         start_of_week = today - timedelta(days=today.weekday())
         start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
 
