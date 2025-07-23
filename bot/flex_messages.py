@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import List, Dict, Any
+from utils.timezone_helper import format_taipei_time
+
 
 
 class FlexMessageBuilder:
@@ -43,7 +45,7 @@ class FlexMessageBuilder:
                     },
                     {
                         "type": "text",
-                        "text": expense.created_at.strftime("%m/%d %H:%M"),
+                        "text": format_taipei_time(expense.created_at, '%m/%d %H:%M'),
                         "size": "sm",
                         "color": "#999999",
                         "flex": 3

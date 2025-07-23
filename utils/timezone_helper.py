@@ -23,7 +23,7 @@ def to_taipei_time(dt):
     utc_dt = pytz.UTC.localize(dt)
     return utc_dt.astimezone(TAIPEI_TZ)
 
-def format_taipei_time(dt, format_string='%Y-%m-%d %H:%M'):
+def format_taipei_time(dt, format_string='%m/%d %H:%M'):
     """格式化為台北時間字串"""
     if dt is None:
         return ''

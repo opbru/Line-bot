@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, desc, and_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 from .models import Base, User, Expense
-from utils.timezone_helper import get_taipei_time, to_taipei_time
+from utils.timezone_helper import get_taipei_time
 
 class DatabaseManager:
     def __init__(self, database_url=None):
